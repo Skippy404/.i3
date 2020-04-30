@@ -1,0 +1,17 @@
+# Part 3 #
+
+# start a terminal
+#bindsym $mod+Return exec i3-sensible-terminal
+bindsym $mod+Return exec termite
+#bindsym $mod+c exec google-chrome-stable --new-window /home/skippy/Documents/html/launch.html
+#bindsym $mod+Shift+c exec google-chrome-stable /home/skippy/Documents/html/launch.html
+bindsym $mod+c exec brave
+bindsym $mod+Shift+c exec brave /home/skippy/Documents/html/launch.html
+bindsym $mod+q exec ~/bin/screenshot
+bindsym $mod+i exec rofi -show drun
+bindsym $mod+Shift+i exec rofi -show window
+bindsym $mod+Shift+x exec $HOME/bin/lock
+
+# kill focused window
+
+# End Part 3

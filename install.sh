@@ -7,15 +7,6 @@ touch localconf
 
 ### Helper functions ###
 
-chr() {
-	[ "$1" -lt 256 ] || return 1
-	printf "\\$(printf '%03o' "$1")"
-}
-
-ord() {
-	LC_CTYPE=C printf '%d' "'$1"
-}
-
 get_avail_keys () {
 	a="$@"
 	echo Current Available keybinds are:
@@ -51,33 +42,19 @@ append_conf () {
 	echo $1 >> $dir/localconf
 }
 
-# Return 0 if !shift, 1 if shift, 2 if return, 3 if shift + return #
-is_special () {
-	if [[ $1 = "Return" ]]; then
-		return 2
-	elif [[ $1 = "sReturn" ]]; then
-		return 3
-	fi
-	local testl=$(echo $1 | cut -c 1)
-	if [[ $testl = s ]]; then
-		return 1
-	else
-		return 0
-	fi
-}
-
 # append_exec keys app
 append_exec() {
-	is_special $1
-	if [[ $? = 1 ]]; then
-		# has shift
-		key="Shift+$(echo $key | cut -c 2)"
-	elif [[ $? = 2 ]]; then
-		key="Return"
-	elif [[ $? = 3 ]]; then
+	key="$1"
+	sexec="$2"
+	if [[ $key = "sReturn" ]]; then
 		key="Shift+Return"
+	elif [[ ! $key = "Return" ]]; then
+		shft=$(echo $key | cut -c 1)
+		if [[ $shft = "s"  ]]; then
+			key="Shift+$(echo $key | cut -c 2)"
+		fi
 	fi
-	append_conf "bindsym \$mod+$key exec $2"
+	append_conf "bindsym \$mod+$key exec $sexec"
 }
 
 ### ---- ### ---- ### ---- ###
@@ -117,7 +94,6 @@ read app
 if [[ ! $app = "skip" ]]; then
 	enter_key "${keybinds[@]}"
 	key=${keybinds[$?]}
-	keybinds[$?]="-"
 	append_exec $key $app
 fi
 
@@ -127,6 +103,35 @@ read app
 if [[ ! $app = "skip" ]]; then
 	enter_key "${keybinds[@]}"
 	key=${keybinds[$?]}
-	keybinds[$?]="-"
+	append_exec $key $app
+fi
+
+#~ Setup screenshot ~#
+echo -n "Would you like to setup screenshots? (Y/N): "
+read app
+if [[ $app = "Y" ]]; then
+	enter_key "${keybinds[@]}"
+	key=${keybinds[$?]}
+	app="$(pwd)/scripts/screenshot.sh"
+	append_exec $key $app
+fi
+
+#~ Setup rofi support ~#
+echo -n "Would you like to setup rofi support? (Y/N): "
+read app
+if [[ $app = "Y" ]]; then
+	enter_key "${keybinds[@]}"
+	key=${keybinds[$?]}
+	app="rofi -show drun"
+	append_exec $key "$app"
+fi
+
+#~ Setup screenshot ~#
+echo -n "Would you like to setup a lockscreen? (Y/N): "
+read app
+if [[ $app = "Y" ]]; then
+	enter_key "${keybinds[@]}"
+	key=${keybinds[$?]}
+	app="$(pwd)/scripts/lock.sh"
 	append_exec $key $app
 fi

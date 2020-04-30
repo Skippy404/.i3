@@ -23,10 +23,14 @@ enter_key () {
 	keys=("$@")
 	get_avail_keys "$@"
 	echo "These are the available keybinds, s<letter> means shift+<letter>"
+	echo "if you wish to abort, type \"abort\""
 	echo -n "Enter your keybind: "
 	read k
 	if [ $k = "-" ]; then
-		return -1
+		echo "\nInvalid key-bind, please try again..."
+		return 255
+	elif [ $k = "abort" ]; then
+		return 254
 	fi
 	for index in ${!keys[*]}
 	do
@@ -34,7 +38,8 @@ enter_key () {
 			return $index
 		fi
 	done
-	return -1
+	echo "\nInvalid key-bind, please try again..."
+	return 255 #
 }
 
 append_conf () {
@@ -62,7 +67,7 @@ append_exec() {
 ### ---- ### ---- ### ---- ###
 
 #Setup start of config splice
-cat ./config_preamble/config_1 > $dir/localconf
+cat $dir/preamble/config_1 > $dir/localconf
 
 # Setup Compton & Wallpaper.
 echo -n "Would you like to enable wallpaper support. (Y/N): "
@@ -83,7 +88,7 @@ if [[ $input = "Y"  ]]; then
 	append_conf "exec tilda"
 fi
 
-cat ./config_preamble/config_2 >> $dir/localconf
+cat $dir/preamble/config_2 >> $dir/localconf
 
 ### Begin Custom Binds setup ###
 append_conf "# Part 1 custom-binds #"
@@ -135,3 +140,6 @@ if [[ $app = "Y" ]]; then
 	app="$(pwd)/scripts/lock.sh"
 	append_exec $key $app
 fi
+
+# Splice 3rd preamble
+cat $dir/preamble/config_3 >> $dir/localconf

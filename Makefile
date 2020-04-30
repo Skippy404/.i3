@@ -1,4 +1,4 @@
-DIR=$(pwd)
+DIR=$(shell pwd)
 
 all: install backup symlinks
 

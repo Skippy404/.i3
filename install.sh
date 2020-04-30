@@ -1,7 +1,8 @@
 #!/bin/bash
 # Available keybinds for usage. - indicates that key is in use
-keybinds=(q sx c sc i si -)
+keybinds=(q sx c sc i si Return sReturn -)
 dir=$(pwd)
+rm -f localconf
 touch localconf
 
 ### Helper functions ###
@@ -50,12 +51,40 @@ append_conf () {
 	echo $1 >> $dir/localconf
 }
 
+# Return 0 if !shift, 1 if shift, 2 if return, 3 if shift + return #
+is_special () {
+	if [[ $1 = "Return" ]]; then
+		return 2
+	elif [[ $1 = "sReturn" ]]; then
+		return 3
+	fi
+	local testl=$(echo $1 | cut -c 1)
+	if [[ $testl = s ]]; then
+		return 1
+	else
+		return 0
+	fi
+}
+
+# append_exec keys app
+append_exec() {
+	is_special $1
+	if [[ $? = 1 ]]; then
+		# has shift
+		key="Shift+$(echo $key | cut -c 2)"
+	elif [[ $? = 2 ]]; then
+		key="Return"
+	elif [[ $? = 3 ]]; then
+		key="Shift+Return"
+	fi
+	append_conf "bindsym \$mod+$key exec $2"
+}
+
 ### ---- ### ---- ### ---- ###
 #~# Begin The installation #~#
 ### ---- ### ---- ### ---- ###
 
 #Setup start of config splice
-rm -f localconf
 cat ./config_preamble/config_1 > $dir/localconf
 
 # Setup Compton & Wallpaper.
@@ -77,14 +106,27 @@ if [[ $input = "Y"  ]]; then
 	append_conf "exec tilda"
 fi
 
-append_conf "# Part 1 custom #"
+cat ./config_preamble/config_2 >> $dir/localconf
 
-enter_key "${keybinds[@]}"
-key=$?
-if [[ ! $key = -1 ]]; then
-	yk=${keybinds[$key]}
-	keybinds[$key]="-"
-	echo "You entered: $yk"
-else
-	echo Invalid
+### Begin Custom Binds setup ###
+append_conf "# Part 1 custom-binds #"
+
+#~ Start With terminal ~#
+echo -n "Setting up terminal, please enter your terminal emulator name (eg gnome-terminal), type \"skip\" to skip: "
+read app
+if [[ ! $app = "skip" ]]; then
+	enter_key "${keybinds[@]}"
+	key=${keybinds[$?]}
+	keybinds[$?]="-"
+	append_exec $key $app
+fi
+
+#~ Setup Web Browser ~#
+echo -n "Setting up Web Browser, please enter your Web Browser name (eg chrome), type \"skip\" to skip: "
+read app
+if [[ ! $app = "skip" ]]; then
+	enter_key "${keybinds[@]}"
+	key=${keybinds[$?]}
+	keybinds[$?]="-"
+	append_exec $key $app
 fi
